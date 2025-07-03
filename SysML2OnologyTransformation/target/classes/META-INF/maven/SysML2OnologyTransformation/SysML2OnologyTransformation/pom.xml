@@ -1,0 +1,30 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>SysML2OnologyTransformation</groupId>
+  <artifactId>SysML2OnologyTransformation</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <!-- https://mvnrepository.com/artifact/org.eclipse.emf/org.eclipse.emf.common -->
+  <dependencies>
+	  <dependency>
+    <groupId>org.eclipse.emf</groupId>
+    <artifactId>org.eclipse.emf.ecore</artifactId>
+    <version>2.12.0</version> <!-- Vérifiez la version utilisée dans votre projet -->
+</dependency>
+<dependency>
+    <groupId>org.eclipse.emf</groupId>
+    <artifactId>org.eclipse.emf.ecore.xmi</artifactId> <!-- EMF XMI pour gérer le chargement des modèles UML et SysML -->
+    <version>2.12.0</version> <!-- Assurez-vous que la version est compatible -->
+</dependency>
+   <!-- OWL API -->
+    <dependency>
+        <groupId>net.sourceforge.owlapi</groupId>
+        <artifactId>owlapi-distribution</artifactId>
+        <version>5.1.0</version>
+    </dependency>
+    <dependency>
+    	<groupId>owlapi.tutorial</groupId>
+    	<artifactId>msc</artifactId>
+    	<version>0.0.1-SNAPSHOT</version>
+    </dependency>
+  </dependencies>
+</project>

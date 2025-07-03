@@ -1,0 +1,218 @@
+  /*
+        
+        /**
+         * Transforme les Activity Diagrams en OWL, en associant chaque Activity à son élément parent SysML
+         */
+       /* public static void transformActivityDiagramsToOWL(Package sysmlModel, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI) {
+            List<Activity> activities = SysMLModelLoader.extractActivityDiagrams(sysmlModel);
+
+            for (Activity activity : activities) {
+                Element parentElement = activity.getOwner();
+                if (parentElement instanceof NamedElement) {
+                    transformActivityToOWL((NamedElement) parentElement, activity, ontology, manager, factory, BASE_IRI);
+                }
+            }
+        }
+
+        /**
+         * Convertit une activité SysML en OWL, associée à son élément parent
+         */
+     /*   private static void transformActivityToOWL(NamedElement parentElement, Activity activity, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI) {
+
+            // Création de l'OWLClass pour l'élément parent (ex: un Bloc SysML)
+            OWLClass parentOwlClass = factory.getOWLClass(IRI.create(BASE_IRI + parentElement.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(parentOwlClass));
+
+            // Création de l'OWLClass pour l'Activity et lier au parent (subClassOf)
+            OWLClass activityClass = factory.getOWLClass(IRI.create(BASE_IRI + activity.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(activityClass));
+            manager.addAxiom(ontology, factory.getOWLSubClassOfAxiom(activityClass, parentOwlClass));
+
+            System.out.println("Created OWL Class for Activity: " + activity.getName() + " (subClassOf " + parentElement.getName() + ")");
+
+            // Transformer les actions et décisions en sous-classes OWL
+            Map<ActivityNode, OWLClass> nodeToOwlClassMap = new HashMap<>();
+            for (ActivityNode node : activity.getNodes()) {
+            	if (node instanceof Action)
+            	{
+            		System.out.println("action****"+node.getName());
+            	}
+                if (node instanceof Action || node instanceof DecisionNode || node instanceof MergeNode) {
+                    transformActivityNodeToOWL(activityClass, node, ontology, manager, factory, BASE_IRI,nodeToOwlClassMap);
+                }
+            }
+
+            // Transformer les flux (ObjectFlows et ControlFlows) en propriétés OWL
+            for (ActivityEdge edge : activity.getEdges()) {
+                if (edge instanceof ObjectFlow || edge instanceof ControlFlow) {
+                	System.out.println("***edge"+edge.getName());
+                    createObjectPropertyForFlow(edge, ontology, manager, factory, BASE_IRI,nodeToOwlClassMap);
+                }
+            }
+        }
+
+        /**
+         * Convertit une Action, DecisionNode ou MergeNode en OWLClass et l'associe à l'Activity
+         */
+       /* private static void transformActivityNodeToOWL(OWLClass activityClass, ActivityNode node, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI, Map<ActivityNode, OWLClass> nodeToOwlClassMap) {
+            OWLClass nodeClass = factory.getOWLClass(IRI.create(BASE_IRI + node.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(nodeClass));
+            manager.addAxiom(ontology, factory.getOWLSubClassOfAxiom(nodeClass, activityClass));
+
+            nodeToOwlClassMap.put(node, nodeClass);
+            System.out.println("Created OWL Class for Activity Node: " + node.getName() + " (subClassOf " + activityClass.getIRI().getShortForm() + ")");
+        }
+
+        /**
+         * Convertit un flux SysML (ControlFlow ou ObjectFlow) en ObjectProperty OWL
+         */
+      /*  private static void createObjectPropertyForFlow(ActivityEdge edge, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI, Map<ActivityNode, OWLClass> nodeToOwlClassMap) {
+            ActivityNode source = edge.getSource();
+            ActivityNode target = edge.getTarget();
+            System.out.println("***************source"+source.getName());
+            System.out.println("***************target"+target.getName());
+            System.out.println("********************map"+nodeToOwlClassMap.get(source));
+
+            if (nodeToOwlClassMap.containsKey(source) && nodeToOwlClassMap.containsKey(target)) {
+                OWLClass sourceClass = nodeToOwlClassMap.get(source);
+                OWLClass targetClass = nodeToOwlClassMap.get(target);
+
+                String propertyName = "flowsTo_" + target.getName();
+                OWLObjectProperty flowProperty = factory.getOWLObjectProperty(IRI.create(BASE_IRI + propertyName));
+
+                System.out.println("***************flow"+flowProperty);
+                System.out.println("999999999999999"+sourceClass);
+                		
+                OWLObjectPropertyDomainAxiom domainAxiom = factory.getOWLObjectPropertyDomainAxiom(flowProperty, sourceClass);
+                OWLObjectPropertyRangeAxiom rangeAxiom = factory.getOWLObjectPropertyRangeAxiom(flowProperty, targetClass);
+
+                manager.addAxiom(ontology, domainAxiom);
+                manager.addAxiom(ontology, rangeAxiom);
+
+                System.out.println("Created OWL ObjectProperty: " + propertyName + " from " + source.getName() + " to " + target.getName());
+            }
+        }*/
+        
+        private static Map<ActivityNode, OWLClass> nodeToOwlClassMap = new HashMap<>();
+        private static Map<Action, OWLClass> actionToOwlClassMap = new HashMap<>();
+
+        /**
+         * Transforme les Activity Diagrams en OWL, en associant chaque Activity à son élément parent SysML
+         */
+        public static void transformActivityDiagramsToOWL(Package sysmlModel, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI) {
+            List<Activity> activities = SysMLModelLoader.extractActivityDiagrams(sysmlModel);
+
+            for (Activity activity : activities) {
+                Element parentElement = activity.getOwner();
+                if (parentElement instanceof NamedElement) {
+                    transformActivityToOWL((NamedElement) parentElement, activity, ontology, manager, factory, BASE_IRI);
+                }
+            }
+        }
+
+        /**
+         * Convertit une activité SysML en OWL, associée à son élément parent
+         */
+        private static void transformActivityToOWL(NamedElement parentElement, Activity activity, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI) {
+
+            // Création de l'OWLClass pour l'élément parent (ex: un Bloc SysML)
+            OWLClass parentOwlClass = factory.getOWLClass(IRI.create(BASE_IRI + parentElement.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(parentOwlClass));
+
+            // Création de l'OWLClass pour l'Activity et lier au parent (subClassOf)
+            OWLClass activityClass = factory.getOWLClass(IRI.create(BASE_IRI + activity.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(activityClass));
+            manager.addAxiom(ontology, factory.getOWLSubClassOfAxiom(activityClass, parentOwlClass));
+
+            System.out.println("Created OWL Class for Activity: " + activity.getName() + " (subClassOf " + parentElement.getName() + ")");
+
+            // Transformer les ActivityParameterNodes
+            for (ActivityNode node : activity.getNodes()) {
+                if (node instanceof ActivityParameterNode) {
+                    transformActivityParameterNodeToOWL(activityClass, (ActivityParameterNode) node, ontology, manager, factory, BASE_IRI);
+                } else if (node instanceof Action) {
+                    transformActivityNodeToOWL(activityClass, (Action) node, ontology, manager, factory, BASE_IRI);
+                }
+            }
+
+            // Transformer les flux (ObjectFlows et ControlFlows) en propriétés OWL
+            for (ActivityEdge edge : activity.getEdges()) {
+                if (edge instanceof ObjectFlow || edge instanceof ControlFlow) {
+                    createObjectPropertyForFlow(edge, ontology, manager, factory, BASE_IRI);
+                }
+            }
+        }
+
+        /**
+         * Convertit une Action en OWLClass et ajoute ses Input/OutputPins
+         */
+        private static void transformActivityNodeToOWL(OWLClass activityClass, Action action, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI) {
+            OWLClass actionClass = factory.getOWLClass(IRI.create(BASE_IRI + action.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(actionClass));
+            manager.addAxiom(ontology, factory.getOWLSubClassOfAxiom(actionClass, activityClass));
+
+            actionToOwlClassMap.put(action, actionClass);
+            System.out.println("Created OWL Class for Activity Node: " + action.getName() + " (subClassOf " + activityClass.getIRI().getShortForm() + ")");
+
+            // Transformer les InputPins et OutputPins
+            for (InputPin inputPin : action.getInputs()) {
+                transformPinToOWL(actionClass, inputPin, ontology, manager, factory, BASE_IRI, "hasInput");
+            }
+            for (OutputPin outputPin : action.getOutputs()) {
+                transformPinToOWL(actionClass, outputPin, ontology, manager, factory, BASE_IRI, "hasOutput");
+            }
+        }
+
+        /**
+         * Convertit un ActivityParameterNode en OWLClass
+         */
+        private static void transformActivityParameterNodeToOWL(OWLClass activityClass, ActivityParameterNode node, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI) {
+            OWLClass nodeClass = factory.getOWLClass(IRI.create(BASE_IRI + node.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(nodeClass));
+            manager.addAxiom(ontology, factory.getOWLSubClassOfAxiom(nodeClass, activityClass));
+
+            nodeToOwlClassMap.put(node, nodeClass);
+            System.out.println("Created OWL Class for ActivityParameterNode: " + node.getName() + " (subClassOf " + activityClass.getIRI().getShortForm() + ")");
+        }
+
+        /**
+         * Convertit un InputPin ou OutputPin en OWLClass et ajoute une relation vers son Action
+         */
+        private static void transformPinToOWL(OWLClass actionClass, Pin pin, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI, String propertyType) {
+            OWLClass pinClass = factory.getOWLClass(IRI.create(BASE_IRI + pin.getName().replace(" ", "")));
+            manager.addAxiom(ontology, factory.getOWLDeclarationAxiom(pinClass));
+            manager.addAxiom(ontology, factory.getOWLSubClassOfAxiom(pinClass, actionClass));
+
+            OWLObjectProperty property = factory.getOWLObjectProperty(IRI.create(BASE_IRI + propertyType));
+            manager.addAxiom(ontology, factory.getOWLObjectPropertyDomainAxiom(property, actionClass));
+            manager.addAxiom(ontology, factory.getOWLObjectPropertyRangeAxiom(property, pinClass));
+
+            System.out.println("Created OWL Class for Pin: " + pin.getName() + " (subClassOf " + actionClass.getIRI().getShortForm() + ")");
+        }
+
+        /**
+         * Convertit un flux SysML (ControlFlow ou ObjectFlow) en ObjectProperty OWL
+         */
+        private static void createObjectPropertyForFlow(ActivityEdge edge, OWLOntology ontology, OWLOntologyManager manager, OWLDataFactory factory, String BASE_IRI) {
+            ActivityNode source = edge.getSource();
+            ActivityNode target = edge.getTarget();
+            
+            System.out.println(source.getName()+"++++++++++"+target.getName());
+
+            if (nodeToOwlClassMap.containsKey(source) && nodeToOwlClassMap.containsKey(target)) {
+                OWLClass sourceClass = nodeToOwlClassMap.get(source);
+                OWLClass targetClass = nodeToOwlClassMap.get(target);
+
+                String propertyName = "flowsTo_" + target.getName();
+                OWLObjectProperty flowProperty = factory.getOWLObjectProperty(IRI.create(BASE_IRI + propertyName));
+
+                OWLObjectPropertyDomainAxiom domainAxiom = factory.getOWLObjectPropertyDomainAxiom(flowProperty, sourceClass);
+                OWLObjectPropertyRangeAxiom rangeAxiom = factory.getOWLObjectPropertyRangeAxiom(flowProperty, targetClass);
+
+                manager.addAxiom(ontology, domainAxiom);
+                manager.addAxiom(ontology, rangeAxiom);
+
+                System.out.println("Created OWL ObjectProperty: " + propertyName + " from " + source.getName() + " to " + target.getName());
+            }
+        }
+    
