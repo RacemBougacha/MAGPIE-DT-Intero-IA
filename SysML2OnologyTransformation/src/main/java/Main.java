@@ -60,7 +60,7 @@ public class Main {
 		PackageBlockDiagramtransformationToOWL.transformPackageToOWLClass(sysmlModel, ontology, manager, factory, BASE_IRI);
 		//m.transformRelationshipsToOWL(sysmlModel, ontology, manager, factory, BASE_IRI);
 		StateMachineDiagramTransformationToOWL.transformStateMachinesToOWL(sysmlModel, ontology, manager, factory, BASE_IRI);
-		//ActivityDiagramTransformationToOWL.transformActivityDiagramsToOWL(sysmlModel, ontology, manager, factory, BASE_IRI);
+		ActivityDiagramTransformationToOWL.transformActivityDiagramsToOWL(sysmlModel, ontology, manager, factory, BASE_IRI);
 		SequenceDiagramTransformationToOWL.transformSequenceToOWL(sysmlModel, ontology, manager, factory, BASE_IRI);
 		
 		saveOntology(ontology);
