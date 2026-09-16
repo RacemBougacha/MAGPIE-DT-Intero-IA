@@ -54,6 +54,7 @@ public class AlignMergeRefactorinWithMultiOnto {
 	
 	public int f = 0;
 	Alignment al = null;
+	private static final String OUTPUT_DIR = System.getProperty("iatool.output.dir", "./output/");
 	public File AlignmentFunction(URI uri1, URI uri2) throws AlignmentException, FileNotFoundException, UnsupportedEncodingException {
 		System.out.println("Step 1 of the process start");
 		System.out.println("Alignment step between ontology 1: "+uri1+" and ontology 2: "+uri2+" start");
@@ -108,7 +109,7 @@ public class AlignMergeRefactorinWithMultiOnto {
 		
 		/** Alignment ontology creation **/
 			 
-		File Align = new File("C:\\Users\\RB275872\\Desktop\\IATOOL\\alignResult.owl");//"C:\\Users\\RB275872\\Desktop\\Federated Ontology Alignment\\FederatedOwl\\AlignmentResult.owl");
+		File Align = new File(OUTPUT_DIR + " alignResult.owl");
 		PrintWriter writer = new PrintWriter ( new FileOutputStream( Align), true );
 		AlignmentVisitor renderer = new  OWLAxiomsRendererVisitor(writer);
 		al.render(renderer);
@@ -116,7 +117,7 @@ public class AlignMergeRefactorinWithMultiOnto {
 		writer.close();
 		
 		/** Alignment metadata creation **/
-		File AligMesur = new File("C:\\Users\\RB275872\\Desktop\\IATOOL\\alignMesur.owl");//"C:\\Users\\RB275872\\Desktop\\Federated Ontology Alignment\\FederatedOwl\\AlignmentResultMesurement"+f+".owl");
+		File AligMesur = new File(OUTPUT_DIR + "alignMesur.owl");
 		PrintWriter writerMesur = new PrintWriter ( new FileOutputStream( AligMesur), true );
 		AlignmentVisitor rendererMesur = new RDFRendererVisitor(writerMesur);
 		al.render(rendererMesur);
@@ -132,39 +133,36 @@ public class AlignMergeRefactorinWithMultiOnto {
 	}
 	
 	
-	public File MergeFunction(ArrayList<URI> ontologiesSet, File alignFile, OWLOntologyManager manager) throws OWLOntologyCreationException, OWLOntologyStorageException, FileNotFoundException  {
-		
-		
-		 for(int g=0; g < ontologiesSet.size(); g++){
-			 try
-			 {manager.loadOntologyFromOntologyDocument(IRI.create(ontologiesSet.get(g)));}
-			 catch (OWLOntologyAlreadyExistsException e) {System.out.println("***");}
-			 
-		 }
-		 try
-		 {
-		 manager.loadOntologyFromOntologyDocument(alignFile);}
-		 catch (OWLOntologyAlreadyExistsException e) {System.out.println("***");}
-		 
-		 System.out.println("Step 2 of the process start");
-		 System.out.println("Merge step between ontology ontologies: "+manager.getOntologies().toString()+" start"); 
-
-		 /** Merged Ontology creation **/
-		 OWLOntologyMerger merger = new OWLOntologyMerger(manager);
-		 String mergedOntologyIRI = "http://example.com/merged";
-		  
-		  if(manager.getOntology(IRI.create("http://example.com/merged")) != null)
-		  {manager.removeOntology(manager.getOntology(IRI.create("http://example.com/merged"))); }
-		
-		  OWLOntology mergedOntology = merger.createMergedOntology(manager, IRI.create("http://example.com/merged")) ;
-		  
-		
-		  File merged=new File ("C:\\Users\\RB275872\\Desktop\\IATOOL\\mergedResult.owl");//"C:\\Users\\RB275872\\Desktop\\Federated Ontology Alignment\\FederatedOwl\\mergedResult.owl");
-		  manager.saveOntology(mergedOntology,  new FileOutputStream(merged));
-		  
-		  System.out.println("Step 2 of the process finish");
-		  System.out.println("Merge step between ontology ontologies: "+manager.getOntologies().toString()+" finish"); 
-		  return merged;
+		public File MergeFunction(ArrayList<URI> ontologiesSet, File alignFile, OWLOntologyManager manager, int round)
+	        throws OWLOntologyCreationException, OWLOntologyStorageException, FileNotFoundException {
+	
+	    for (URI ontoUri : ontologiesSet) {
+	        try {
+	            manager.loadOntologyFromOntologyDocument(IRI.create(ontoUri));
+	        } catch (OWLOntologyAlreadyExistsException e) {
+	            System.out.println("***");
+	        }
+	    }
+	    try {
+	        manager.loadOntologyFromOntologyDocument(alignFile);
+	    } catch (OWLOntologyAlreadyExistsException e) {
+	        System.out.println("***");
+	    }
+	
+	    System.out.println("Step 2 (round " + round + ") of the process start");
+	    System.out.println("Merge step between ontologies: " + manager.getOntologies() + " start");
+	
+	    OWLOntologyMerger merger = new OWLOntologyMerger(manager);
+	    if (manager.getOntology(IRI.create("http://example.com/merged")) != null) {
+	        manager.removeOntology(manager.getOntology(IRI.create("http://example.com/merged")));
+	    }
+	    OWLOntology mergedOntology = merger.createMergedOntology(manager, IRI.create("http://example.com/merged"));
+	
+	    File merged = new File(OUTPUT_DIR + "mergedResult_" + round + ".owl");
+	    manager.saveOntology(mergedOntology, new FileOutputStream(merged));
+	
+	    System.out.println("Step 2 (round " + round + ") of the process finish");
+	    return merged;
 	}
 	
 	public File refactorFile(ArrayList<URI> ontologiesSet, File mergedFile, OWLOntologyManager manager) throws OWLException {
@@ -219,7 +217,7 @@ public class AlignMergeRefactorinWithMultiOnto {
 			
 		manager.addAxioms(mergedRefactOntology2, mergedOntologyAxioms);
 			
-		File RefactorFile = new File("C:\\Users\\RB275872\\Desktop\\IATOOL\\RefactorResult.owl");//"C:\\Users\\RB275872\\Desktop\\Federated Ontology Alignment\\FederatedOwl\\RefactorResult.owl");
+		File RefactorFile = new File(OUTPUT_DIR + "RefactorResult.owl");
 		manager.saveOntology(mergedRefactOntology2, IRI.create(RefactorFile));
 			
 		System.out.println("Step 3 of the process finish");
@@ -244,57 +242,37 @@ public class AlignMergeRefactorinWithMultiOnto {
     	String method = "fr.inrialpes.exmo.align.impl.method.StringDistAlignment";
     	
     	/** Inputs Ontologies **/
-    	String u1 = "file:///C:/Users/RB275872/Desktop/IATOOL/SysML111Ontology.owl";
-    	String u2= "file:///C:/Users/RB275872/Desktop/IATOOL/SysML222Ontology.owl";
-    	/*String u1 = "file:///C:/Users/RB275872/Desktop/MyWorkAPI/FEDeRATED-Semantic-Model-master/Event.ttl";
-    	String u2= "file:///C:/Users/RB275872/Desktop/MyWorkAPI/FEDeRATED-Semantic-Model-master/DigitalTwin.ttl";
-    	String u3= "file:///C:/Users/RB275872/Desktop/MyWorkAPI/FEDeRATED-Semantic-Model-master/Classifications.ttl";
-    	String u4 = "file:///C:/Users/RB275872/Desktop/MyWorkAPI/FEDeRATED-Semantic-Model-1.0.1-alpha/BusinessService.ttl";
-    	String u5= "file:///C:/Users/RB275872/Desktop/MyWorkAPI/FEDeRATED-Semantic-Model-1.0.1-alpha/PhysicalInfrastructure.ttl";
-    	String u6= "file:///C:/Users/RB275872/Desktop/MyWorkAPI/FEDeRATED-Semantic-Model-master/LegalPerson.ttl";*/
+    	String u1 = "file:///"+ OUTPUT_DIR + "SysML111Ontology.owl";
+    	String u2= "file:///" + OUTPUT_DIR + "SysML222Ontology.owl";
+    	
     	
     	uri1 = new URI(u1);
     	uri2 = new URI(u2);
-    	/*uri3 = new URI(u3);
-    	uri4 = new URI(u4);
-    	uri5 = new URI(u5);
-    	uri6 = new URI(u6);*/
+
     
     	/** List of ontologies initialisation **/
 		ArrayList<URI> ontologiesSet = new ArrayList<URI>();
 		
 		ontologiesSet.add(uri1);
 		ontologiesSet.add(uri2);
-		/*ontologiesSet.add(uri3);
-		ontologiesSet.add(uri4);
-		ontologiesSet.add(uri5);
-		ontologiesSet.add(uri6);*/
+		
 		
 		
 		/** Alignment and merge without refactoring instanciation**/
 		AlignMergeRefactorinWithMultiOnto amNoRefactwmo = new AlignMergeRefactorinWithMultiOnto();
-
-		File alignFile = new File("C:\\Users\\RB275872\\Desktop\\IATOOL\\AlignmentResult.owl");//"C:\\Users\\RB275872\\Desktop\\Federated Ontology Alignment\\FederatedOwl\\AlignmentResult.owl");
 		OWLOntologyManager manager = OWLManager.createOWLOntologyManager();
 		
-		int size = ontologiesSet.size();
+		int n = ontologiesSet.size(); // N ontologies d'entrée — figé une fois pour toutes
+		File finalMerged = null;
 		
-		for(int g=0; g < size; g++){
-			try {
-				
-			//manager.getOntologies().forEach(e ->{manager.removeOntology(e);});
-				
-			//Alignment 
-			alignFile = amNoRefactwmo.AlignmentFunction(ontologiesSet.get(g), ontologiesSet.get(g+1));
-			
-			//Merge
-			File mergedFile = amNoRefactwmo.MergeFunction(ontologiesSet, alignFile, manager);
-			manager.removeOntology(manager.getOntology(IRI.create("http://example.com/merged")));
-			ontologiesSet.add(mergedFile.toURI());
-			}catch (IndexOutOfBoundsException e)
-			{
-				break;
-			}
+		for (int g = 0; g < n - 1; g++) {
+		    File alignFile = amNoRefactwmo.AlignmentFunction(ontologiesSet.get(g), ontologiesSet.get(g + 1));
+		    finalMerged = amNoRefactwmo.MergeFunction(ontologiesSet, alignFile, manager, g);
+		    manager.removeOntology(manager.getOntology(IRI.create("http://example.com/merged")));
+		}
+
+		System.out.println("Ontologie finale unifiée : " +
+	    (finalMerged != null ? finalMerged : "aucune fusion (une seule ontologie en entrée)"));
 		
 		
 		/** Alignment and merge with refactoring instanciation**/
