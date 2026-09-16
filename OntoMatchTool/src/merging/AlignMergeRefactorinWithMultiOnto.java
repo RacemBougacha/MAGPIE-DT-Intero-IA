@@ -58,65 +58,53 @@ public class AlignMergeRefactorinWithMultiOnto {
 		System.out.println("Step 1 of the process start");
 		System.out.println("Alignment step between ontology 1: "+uri1+" and ontology 2: "+uri2+" start");
 		Properties params = new Properties();
-		
-		/**an alignment based on the comparison of the properties that classes have in common**/
-		/*ClassStructAlignment cs = new ClassStructAlignment();
-		cs.init(uri1, uri2);
-		cs.align(al, params);
-		al = cs;
-		System.out.println(cs.nbCells()); */
-		
-		/** same name alignment **/
-		/*NameEqAlignment neq = new NameEqAlignment();
+
+		/** 1. Exact name matching **/
+		NameEqAlignment neq = new NameEqAlignment();
 		neq.init(uri1, uri2);
 		neq.align(al, params);
 		al = neq;
-		System.out.println(neq.nbCells());*/
+		System.out.println("After NameEq: " + neq.nbCells());
 		
+		/** 2. Structural comparison **/
+		ClassStructAlignment cs = new ClassStructAlignment();
+		cs.init(uri1, uri2);
+		cs.align(al, params);
+		al = cs;
+		System.out.println("After ClassStruct: " + cs.nbCells());
 		
-		/** name of classes and properties Alignment**/
-		/*NameAndPropertyAlignment nap = new NameAndPropertyAlignment();
-		nap.init(uri1, uri2);
-		nap.align(al, params);
-		al = nap;
-		System.out.println(nap.nbCells()); */
-		
-		/** editing distance between entity names **/ 
-		/*EditDistNameAlignment editdist = new EditDistNameAlignment();
+		/** 3. Edit-distance similarity **/
+		EditDistNameAlignment editdist = new EditDistNameAlignment();
 		editdist.init(uri1, uri2);
-		editdist.align(neq, params);
-		System.out.println(editdist.nbCells()); 
-		al=editdist;
-		System.out.println(al.nbCells());*/
+		editdist.align(al, params);
+		al = editdist;
+		System.out.println("After EditDist: " + editdist.nbCells());
 		
-		/** Computes a substring distance on the (downcased) entity name  **/
-		/*SubsDistNameAlignment subsedit = new SubsDistNameAlignment();
+		/** 4. Substring matching **/
+		SubsDistNameAlignment subsedit = new SubsDistNameAlignment();
 		subsedit.init(uri1, uri2);
 		subsedit.align(al, params);
-		System.out.println(subsedit.nbCells()); 
-		al=subsedit;
-		System.out.println(al.nbCells());*/
+		al = subsedit;
+		System.out.println("After Substring: " + subsedit.nbCells());
 		
-		
-		/** string metric for the comparison of names **/
+		/** 5. String-based (SMOA), seuil 0.85 — tel que décrit dans le papier **/
 		AlignmentProcess ap = new StringDistAlignment();
-		ap.init( uri1, uri2 );
-		params.setProperty("stringFunction","smoaDistance");
-		params.setProperty("noinst","1");
-		ap.align(al, params );
+		ap.init(uri1, uri2);
+		params.setProperty("stringFunction", "smoaDistance");
+		params.setProperty("noinst", "1");
+		ap.align(al, params);
 		ap.cut(0.85);
 		al = ap;
-		System.out.println(al.nbCells());  
+		System.out.println("After SMOA (cut 0.85): " + al.nbCells());
 		
-		/** Semantic similarity Relates words to one another in terms of synonyms, hypernyms, hyponyms, and more **/	  
-		/*JWNLAlignment ap2= new JWNLAlignment();
+		/** 6. WordNet — nécessite un dictionnaire local, chemin à paramétrer (voir plus bas) **/
+		JWNLAlignment ap2 = new JWNLAlignment();
 		ap2.init(uri1, uri2);
-		String wordnet = "C:\\Users\\RB275872\\Downloads\\wn3.1.dict.tar\\dict";
-		params.setProperty("wndict", wordnet);
+		params.setProperty("wndict", WORDNET_DICT_PATH); // variable, pas de chemin en dur
 		params.setProperty("wnfunction", "cosynonymySimilarity");
-		ap2.align(al, params );
-		al=ap2;
-		System.out.println(al.nbCells());  */
+		ap2.align(al, params);
+		al = ap2;
+		System.out.println("After WordNet: " + al.nbCells());
 		
 		/** Alignment ontology creation **/
 			 
