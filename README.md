@@ -89,6 +89,9 @@ Natural-language system description
          Ontology alignment
                  |
                  v
+           Merged Ontology
+                 |
+                 v
       Unified, refactored ontology
                  |
                  v
